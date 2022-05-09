@@ -1,5 +1,6 @@
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
+from datetime import time as dtime
 import sys
 import requests
 import json
@@ -11,11 +12,12 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 import characters
 import weather
+import googlecalendar
 
 BACKGROUND = (0,0,0)
 ORANGE = (255,128,0)
 BLUE = (64,64,255)
-
+GREEN = (64,255,64)
 
 font16 = ImageFont.truetype('fonts/JF-Dot-jiskan16s-2000.ttf', 16)
 font14 = ImageFont.truetype('fonts/JF-Dot-K14-2004.ttf', 14)
@@ -25,6 +27,7 @@ def main():
     try:
         matrix = get_matrix()
         mario = characters.Mario()
+        sch = googlecalendar.GoogleCalendar()
         image, draw = init_matrix()
 
         thread_clock = threading.Thread(target=disp_clock, args=(image,))
@@ -37,6 +40,33 @@ def main():
         print("Press CTRL-C to stop.")
 
         while True:
+            events = sch.get_ut_schedules()
+            for event in events:
+                startdt = event['start'].get('dateTime', event['start'].get('date'))
+                startdt = datetime.fromisoformat(startdt)
+                day = '今日' if datetime.combine((date.today() + timedelta(days=1)),
+                dtime(tzinfo=timezone(timedelta(hours=9)))) > startdt else '明日'
+                
+                start_time =startdt.strftime('%H:%M')
+                print(day + start_time, event['summary'])
+                news = day + start_time + ' ' + event['summary']
+
+                l = len(news) * 16 - 12
+                # create news image 
+                lower_image = Image.new('RGB',(l,16),BACKGROUND)
+                lower_draw = ImageDraw.Draw(lower_image)
+                lower_draw.text((0,0), news, GREEN, font=font16)
+
+                image.paste(lower_image, (0,16))
+
+                matrix.SetImage(image)
+                time.sleep(1.8)
+
+                for i in range(l):
+                    image.paste(lower_image, (-i,16))
+                    matrix.SetImage(image)
+                    time.sleep(0.015)
+
             # News topics
             rss = get_news()
 
