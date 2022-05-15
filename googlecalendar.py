@@ -1,4 +1,3 @@
-
 from datetime import date, datetime, timedelta
 import os.path
 
@@ -54,14 +53,13 @@ class GoogleCalendar():
         if not events:
             print('No upcoming events found.')
             return
-
-        # Prints the start and name of the next 10 events
-        for event in events:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            print(start, event['summary'])
-
+        else:
+            return events
 
 
 if __name__ == '__main__':
     sch = GoogleCalendar()
-    sch.get_ut_schedules()
+    events = sch.get_ut_schedules()
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        print(start, event['summary'])
