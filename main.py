@@ -20,7 +20,8 @@ BLUE = (0,0,255)
 GREEN = (0,255,0)
 
 font16 = ImageFont.truetype('fonts/JF-Dot-jiskan16s-2000.ttf', 16)
-font14 = ImageFont.truetype('fonts/JF-Dot-K14-2004.ttf', 14)
+#font14 = ImageFont.truetype('fonts/JF-Dot-K14-2004.ttf', 14)
+font14 = ImageFont.truetype('fonts/JF-Dot-ShinonomeMin14.ttf', 14)
 
 
 def main():
