@@ -44,7 +44,7 @@ class Weather_Forecast():
 
 
     def get_icon(self, update=False):
-        icon = [('☀',(255,128,16)),('☁',(128,128,128)),('☂',(16,16,128)),('☃',(160,160,160)),('★',(255,255,16))]
+        icon = [('☀',(255,128,16)),('☁',(128,128,128)),('☂',(32,32,255)),('☃',(160,160,160)),('★',(255,255,16))]
 
         def make_icon(weather1, weather2=None, LATER=False):
              nonlocal draw

@@ -16,11 +16,10 @@ import charm
 
 BACKGROUND = (0,0,0)
 ORANGE = (255,128,0)
-BLUE = (0,0,255)
+BLUE = (64,64,255)
 GREEN = (0,255,0)
 
 font16 = ImageFont.truetype('fonts/JF-Dot-jiskan16s-2000.ttf', 16)
-#font14 = ImageFont.truetype('fonts/JF-Dot-K14-2004.ttf', 14)
 font14 = ImageFont.truetype('fonts/JF-Dot-ShinonomeMin14.ttf', 14)
 
 
@@ -32,7 +31,6 @@ def main():
         q = queue.Queue()
         image = Image.new('RGB',(64,32),BACKGROUND)
         draw = ImageDraw.Draw(image)
-
 
         thread_refresh = threading.Thread(target=refresh, args=(get_matrix(),))
         thread_clock = threading.Thread(target=disp_clock)
@@ -65,7 +63,6 @@ def main():
                 q.task_done()
 
             char.random(image)
-
 
     except KeyboardInterrupt:
         sys.exit(0)
@@ -136,19 +133,22 @@ def get_schedules(queue):
     sch = googlecalendar.GoogleCalendar()
     while True:
         try:
-            events = sch.get_ut_schedules() or []
+            events = sch.get_ut_schedules() or [{'start': None, 'summary': 'INFO: No schedules.'}]
         except:
-            events = []
+            events = [{'start': None, 'summary': 'ERROR: Cannot get schedules.'}]
 
         for event in events:
-            startdt = event['start'].get('dateTime', event['start'].get('date'))
-            startdt = datetime.fromisoformat(startdt)
-            day = '今日' if datetime.combine((date.today() + timedelta(days=1)),
-            dtime(tzinfo=timezone(timedelta(hours=9)))) > startdt else '明日'
-            
-            start_time =startdt.strftime('%H:%M')
-            news = day + start_time + ' ' + event['summary']
-            queue.put({'type': 'schedule', 'text': news})
+            text = ''
+            if event.get('start'):
+                startdt = event['start'].get('dateTime', event['start'].get('date'))
+                startdt = datetime.fromisoformat(startdt)
+                startdt = startdt.replace(tzinfo=timezone.utc)
+                day = '今日' if datetime.combine((date.today() + timedelta(days=1)),
+                    dtime(tzinfo=timezone(timedelta(hours=9)))) > startdt else '明日'
+                start_time =startdt.strftime('%H:%M')
+                text = day + start_time + ' '
+            text += event['summary']
+            queue.put({'type': 'schedule', 'text': text})
         queue.join()
 
 
@@ -164,6 +164,7 @@ def disp_clock():
         draw.text((0,0), clock, ORANGE, font=font14)
         image.paste(image_clock, (0,0))
         time.sleep(1)
+
 
 def disp_weather():
     x = 29

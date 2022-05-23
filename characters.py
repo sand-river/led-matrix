@@ -7,16 +7,25 @@ class Character():
     colors = {}
 
     def __init__(self):
-        for dot_char in self.dot_chars:
-            arr = np.array(self.conv(dot_char, self.colors))
-            self.images.append(
-                Image.fromarray((arr * 255).astype(np.uint8))
-            )
+#        for dot_char in self.dot_chars:
+#            arr = np.array(self.conv(dot_char, self.colors))
+#            self.images.append(
+#                Image.fromarray((arr * 255).astype(np.uint8))
+#            )
+        self.images = [
+            Image.fromarray(
+                (np.array(
+                    self.conv(dot_char, self.colors)
+                ) * 255).astype(np.uint8)
+            ) for dot_char in self.dot_chars
+        ]
+
+
 
     def conv(self, dot, colors):
         return list(map(
             lambda x: list(map(
-                lambda x: eval(x, colors), list(x)
+                lambda x: eval(x, None, colors), list(x)
             )), dot.split()
         ))
 
@@ -24,7 +33,7 @@ class Mario(Character):
     colors = {
         'R': (128,255,255),
         'G': (255,192,255),
-        'O': (128,192,255),
+        'O': (96,160,224),
         'N': (0,0,0)
     }
 
@@ -123,9 +132,9 @@ NNGGGGNNNNNNNNNN\
 
 class Luigi(Mario):
     colors = {
-        'R': (224,224,224),
-        'G': (64,255,64),
-        'O': (128,192,255),
+        'R': (32,32,32),
+        'G': (255,64,255),
+        'O': (96,160,224),
         'N': (0,0,0)
     }
 

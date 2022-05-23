@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import os.path
 
 from google.auth.transport.requests import Request
@@ -61,5 +61,4 @@ if __name__ == '__main__':
     sch = GoogleCalendar()
     events = sch.get_ut_schedules()
     for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        print(event['start'], event['summary'])
