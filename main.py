@@ -19,17 +19,21 @@ ORANGE = (255,128,0)
 BLUE = (64,64,255)
 GREEN = (0,255,0)
 
+display_width = 128
+display_height = 32
+
 font16 = ImageFont.truetype('fonts/JF-Dot-jiskan16s-2000.ttf', 16)
 font14 = ImageFont.truetype('fonts/JF-Dot-ShinonomeMin14.ttf', 14)
+font12 = ImageFont.truetype('fonts/JF-Dot-Shinonome12.ttf', 12)
 
 
 def main():
     global image
     try:
-        char = charm.Charm()
+        char = charm.Charm(display_width, display_height)
 
         q = queue.Queue()
-        image = Image.new('RGB',(64,32),BACKGROUND)
+        image = Image.new('RGB',(display_width,display_height),BACKGROUND)
         draw = ImageDraw.Draw(image)
 
         thread_refresh = threading.Thread(target=refresh, args=(get_matrix(),))
@@ -96,7 +100,7 @@ def get_matrix():
     options = RGBMatrixOptions()
     options.rows = 32
     options.cols = 64
-    options.chain_length = 1
+    options.chain_length = 2
     options.parallel = 1
     options.hardware_mapping = 'regular'
 
@@ -104,7 +108,7 @@ def get_matrix():
     options.limit_refresh_rate_hz = 120
     # options.show_refresh_rate = 1
     options.brightness = 50 
-    # options.disable_hardware_pulsing = True
+    options.disable_hardware_pulsing = True
 
     return RGBMatrix(options = options)
 
@@ -142,7 +146,7 @@ def get_schedules(queue):
             if event.get('start'):
                 startdt = event['start'].get('dateTime', event['start'].get('date'))
                 startdt = datetime.fromisoformat(startdt)
-                startdt = startdt.replace(tzinfo=timezone.utc)
+                startdt = startdt.replace(tzinfo=timezone(timedelta(hours=9)))
                 day = '今日' if datetime.combine((date.today() + timedelta(days=1)),
                     dtime(tzinfo=timezone(timedelta(hours=9)))) > startdt else '明日'
                 start_time =startdt.strftime('%H:%M')
@@ -153,21 +157,32 @@ def get_schedules(queue):
 
 
 def disp_clock():
-    image_blank = Image.new('RGB',(35,16),BACKGROUND)
+    weekday = ['月','火','水','木','金','土','日']
+    x = 99 if display_width == 128 else 35
+    image_blank = Image.new('RGB', (x,16), BACKGROUND)
     separator = ':'
     while True:
-        clock = datetime.now().strftime('%H' + separator + '%M')
+        now = datetime.now()
+        clock = now.strftime('%H' + separator + '%M')
         separator = ' ' if separator == ':' else ':'
 
         image_clock = image_blank.copy()
         draw = ImageDraw.Draw(image_clock)
-        draw.text((0,0), clock, ORANGE, font=font14)
+        if x == 99:
+            mmdd = now.strftime('%m/%d')
+            week = '(' + weekday[now.weekday()] + ')'
+            draw.text((0,0), mmdd, ORANGE, font=font14)
+            draw.text((35,2), week, ORANGE, font=font12)
+            draw.text((64,0), clock, ORANGE, font=font14)
+        else:
+            draw.text((0,0), clock, ORANGE, font=font14)
+
         image.paste(image_clock, (0,0))
         time.sleep(1)
 
 
 def disp_weather():
-    x = 29
+    x = 64 + 29 if display_width == 128 else 29
     y = 16
 
     image_blank = Image.new('RGB',(x,y*2),BACKGROUND)
@@ -188,15 +203,15 @@ def disp_weather():
         image_weather.paste(weather_icon, (0,0))
         draw.text((2,y), '{:>3}%'.format(wf.data['pops'][0]), BLUE, font=font14)
 
-        image.paste(image_weather, (35,0), masks[0])
+        image.paste(image_weather, (x + 6,0), masks[0])
         for _ in range(20):
             time.sleep(15)
             for i in range(y):
-                image.paste(image_weather, (35,-i-1), masks[i+1])
+                image.paste(image_weather, (x + 6,-i-1), masks[i+1])
                 time.sleep(0.045)
             time.sleep(15)
             for i in range(y):
-                image.paste(image_weather, (35,-y+1+i), masks[y-1-i])
+                image.paste(image_weather, (x + 6,-y+1+i), masks[y-1-i])
                 time.sleep(0.045)
 
 
